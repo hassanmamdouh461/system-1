@@ -1,13 +1,301 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CMS - التقارير</title>
-    <link rel="stylesheet" href="../css/main.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CMS - التقارير</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-   <!-- Redirect to Dashboard for now or Placeholder -->
-   <script>window.location.href = 'dashboard.html';</script>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <i class="fa-solid fa-cash-register"></i>
+        <span>CMS POS</span>
+      </div>
+      
+      <nav class="nav-menu">
+        <a href="dashboard.html" class="nav-item">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>لوحة التحكم</span>
+        </a>
+        <a href="pos.html" class="nav-item">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span>نقطة البيع</span>
+        </a>
+        <a href="products.html" class="nav-item">
+          <i class="fa-solid fa-box-open"></i>
+          <span>المنتجات</span>
+        </a>
+        <a href="customers.html" class="nav-item">
+          <i class="fa-solid fa-users"></i>
+          <span>العملاء</span>
+        </a>
+        <a href="invoices.html" class="nav-item">
+          <i class="fa-solid fa-file-invoice-dollar"></i>
+          <span>الفواتير</span>
+        </a>
+        <a href="reports.html" class="nav-item active">
+          <i class="fa-solid fa-chart-line"></i>
+          <span>التقارير</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="page-title">
+          <h1>التقارير والإحصائيات</h1>
+          <p>تحليل أداء المبيعات والأرباح</p>
+        </div>
+      </header>
+
+      <!-- Date Filter -->
+      <div class="actions-toolbar">
+        <div class="d-flex align-center gap-2">
+            <span style="font-weight: bold; color: var(--text-light);">الفترة الزمنية:</span>
+            <select class="form-control" style="width: 200px;" onchange="updateCharts(this.value)">
+                <option value="today">اليوم</option>
+                <option value="week" selected>آخر 7 أيام</option>
+                <option value="month">هذا الشهر</option>
+                <option value="year">هذه السنة</option>
+            </select>
+        </div>
+        <button class="btn btn-primary" onclick="printReport()">
+            <i class="fa-solid fa-print"></i> طباعة التقرير
+        </button>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid grid-3 mb-4">
+          <div class="card bg-blue-50"> <!-- Using standard card style but maybe inline style for background if class doesn't exist? main.css has card, but not bg-blue-50 helper yet. Let's stick to inline or standard card with modifier -->
+             <div class="card-body d-flex align-center justify-between">
+                 <div>
+                     <p class="text-xs text-muted font-bold text-uppercase">إجمالي المبيعات</p>
+                     <h3 class="mt-1" id="totalSales">0 ج.م</h3>
+                 </div>
+                 <div class="stat-icon bg-blue-100 text-blue rounded p-3">
+                     <i class="fa-solid fa-sack-dollar fa-2x"></i>
+                 </div>
+             </div>
+          </div>
+          <div class="card">
+             <div class="card-body d-flex align-center justify-between">
+                 <div>
+                     <p class="text-xs text-muted font-bold text-uppercase">عدد الفواتير</p>
+                     <h3 class="mt-1" id="totalInvoices">0</h3>
+                 </div>
+                 <div class="stat-icon bg-yellow-100 text-yellow rounded p-3"> <!-- Assuming classes exist or inline style needed -->
+                     <i class="fa-solid fa-file-invoice fa-2x" style="color: var(--warning);"></i>
+                 </div>
+             </div>
+          </div>
+          <div class="card">
+             <div class="card-body d-flex align-center justify-between">
+                 <div>
+                     <p class="text-xs text-muted font-bold text-uppercase">صافي الأرباح</p>
+                     <h3 class="mt-1" id="totalProfit" style="color: var(--success);">0 ج.م</h3>
+                 </div>
+                 <div class="stat-icon bg-green-100 text-green rounded p-3">
+                     <i class="fa-solid fa-chart-line fa-2x" style="color: var(--success);"></i>
+                 </div>
+             </div>
+          </div>
+      </div>
+
+      <!-- Charts Grid -->
+      <div class="grid grid-2 mb-4" style="grid-template-columns: 2fr 1fr;">
+          <div class="card">
+              <div class="card-header">
+                  <h3 class="card-title">تحليل المبيعات</h3>
+              </div>
+              <div class="card-body">
+                  <canvas id="salesChart" height="250"></canvas>
+              </div>
+          </div>
+          <div class="card">
+              <div class="card-header">
+                  <h3 class="card-title">توزيع المنتجات</h3>
+              </div>
+              <div class="card-body">
+                   <canvas id="doughnutChart" height="250"></canvas>
+              </div>
+          </div>
+      </div>
+
+      <!-- Top Products Table -->
+      <div class="card">
+          <div class="card-header">
+              <h3 class="card-title">المنتجات الأكثر مبيعاً</h3>
+          </div>
+          <div class="table-container">
+              <table class="data-table">
+                  <thead>
+                      <tr>
+                          <th>المنتج</th>
+                          <th>الكمية المباعة</th>
+                          <th>إجمالي الإيرادات</th>
+                          <th>نسبة المبيعات</th>
+                      </tr>
+                  </thead>
+                  <tbody id="topProductsTable">
+                      <tr><td colspan="4" class="text-center p-3">جاري التحميل...</td></tr>
+                  </tbody>
+              </table>
+          </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/api.js" type="module"></script>
+  <script type="module">
+    // Initialize Charts variables
+    let salesChartInstance = null;
+    let doughnutChartInstance = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadReportData('week');
+    });
+
+    window.updateCharts = (period) => {
+        loadReportData(period);
+    };
+
+    window.printReport = () => {
+        window.print();
+    };
+
+    async function loadReportData(period) {
+        try {
+            // Fetch data (using dashboard stats + reports mock for now)
+            // In real app, we would pass 'period' to API
+            const statsRes = await api.getDashboardStats();
+            const salesRes = await api.getSalesReport();
+            const topProdRes = await api.getTopProducts();
+
+            if (statsRes.success && salesRes.success) {
+                updateStatsCards(statsRes.data);
+                initSalesChart(salesRes.data);
+                initDoughnutChart(topProdRes.data);
+                updateTopProductsTable(topProdRes.data);
+            }
+        } catch (error) {
+            console.error("Error loading reports", error);
+        }
+    }
+
+    function updateStatsCards(stats) {
+        document.getElementById('totalSales').textContent = formatCurrency(stats.salesToday.amount * 7); // Mocking week data
+        document.getElementById('totalInvoices').textContent = stats.salesToday.count * 7;
+        document.getElementById('totalProfit').textContent = formatCurrency(stats.profit.total);
+    }
+
+    function initSalesChart(salesData) {
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        
+        if (salesChartInstance) {
+            salesChartInstance.destroy();
+        }
+
+        salesChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: salesData.map(d => formatDateShort(d._id)),
+                datasets: [
+                    {
+                        label: 'المبيعات',
+                        data: salesData.map(d => d.totalSales),
+                        backgroundColor: '#6366f1',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'الأرباح',
+                        data: salesData.map(d => d.profit),
+                        backgroundColor: '#10b981',
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    function initDoughnutChart(products) {
+        const ctx = document.getElementById('doughnutChart').getContext('2d');
+        
+        if (doughnutChartInstance) {
+            doughnutChartInstance.destroy();
+        }
+
+        doughnutChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: products.map(p => p.name),
+                datasets: [{
+                    data: products.map(p => p.quantity),
+                    backgroundColor: [
+                        '#6366f1', '#ec4899', '#10b981', '#f59e0b', '#ef4444'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+
+    function updateTopProductsTable(products) {
+        const tbody = document.getElementById('topProductsTable');
+        const totalQty = products.reduce((acc, p) => acc + p.quantity, 0);
+
+        tbody.innerHTML = products.map(p => {
+            const percentage = ((p.quantity / totalQty) * 100).toFixed(1);
+            return `
+                <tr>
+                    <td>
+                        <div class="d-flex align-center gap-1">
+                            <span class="product-icon" style="width:30px;height:30px;"><i class="fa-solid fa-box"></i></span>
+                            ${p.name}
+                        </div>
+                    </td>
+                    <td>${p.quantity}</td>
+                    <td>${formatCurrency(p.revenue)}</td>
+                    <td>
+                        <div class="d-flex align-center gap-1">
+                            <div style="flex:1; height:6px; background:#eee; border-radius:3px; min-width:60px;">
+                                <div style="width:${percentage}%; height:100%; background:var(--primary); border-radius:3px;"></div>
+                            </div>
+                            <span style="font-size:0.8rem;">${percentage}%</span>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function formatDateShort(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ar-EG', { weekday: 'short' }); // Sat, Sun...
+    }
+
+  </script>
 </body>
 </html>
