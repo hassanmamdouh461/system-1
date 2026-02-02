@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CMS - المنتجات</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <i class="fa-solid fa-cash-register"></i>
+        <span>CMS POS</span>
+      </div>
+      
+      <nav class="nav-menu">
+        <a href="dashboard.html" class="nav-item">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>لوحة التحكم</span>
+        </a>
+        <a href="pos.html" class="nav-item">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span>نقطة البيع</span>
+        </a>
+        <a href="products.html" class="nav-item active">
+          <i class="fa-solid fa-box-open"></i>
+          <span>المنتجات</span>
+        </a>
+        <a href="customers.html" class="nav-item">
+          <i class="fa-solid fa-users"></i>
+          <span>العملاء</span>
+        </a>
+        <a href="invoices.html" class="nav-item">
+          <i class="fa-solid fa-file-invoice-dollar"></i>
+          <span>الفواتير</span>
+        </a>
+        <a href="reports.html" class="nav-item">
+          <i class="fa-solid fa-chart-line"></i>
+          <span>التقارير</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="#" class="nav-item logout">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>خروج</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="page-title">
+          <h1>إدارة المنتجات</h1>
+          <p>إضافة وتعديل ومتابعة المخزون</p>
+        </div>
+        <div class="user-profile">
+          <div class="user-info">
+            <span class="name">Admin</span>
+            <span class="role">مسؤول النظام</span>
+          </div>
+          <div class="avatar">
+            <i class="fa-solid fa-user"></i>
+          </div>
+        </div>
+      </header>
+
+      <!-- Actions Toolbar -->
+      <div class="actions-toolbar">
+        <div class="search-box">
+          <i class="fa-solid fa-search"></i>
+          <input type="text" id="searchInput" placeholder="بحث عن منتج (الاسم أو الباركود)...">
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" onclick="openModal('add')">
+            <i class="fa-solid fa-plus"></i> إضافة منتج
+          </button>
+        </div>
+      </div>
+
+      <!-- Products Table -->
+      <div class="table-container fade-in">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>المنتج</th>
+              <th>الباركود</th>
+              <th>التصنيف</th>
+              <th>السعر</th>
+              <th>التكلفة</th>
+              <th>المخزون</th>
+              <th>الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="productsTableBody">
+            <!-- Data will be loaded here -->
+            <tr>
+              <td colspan="7" class="loading-spinner">
+                <i class="fa-solid fa-spinner fa-spin"></i> جاري التحميل...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <!-- Pagination -->
+        <div class="pagination" id="pagination">
+          <!-- Pagination buttons will be generated here -->
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add/Edit Product Modal -->
+  <div id="productModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">إضافة منتج جديد</h2>
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="productForm">
+          <input type="hidden" id="productId">
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>اسم المنتج <span class="required">*</span></label>
+              <input type="text" id="productName" required>
+            </div>
+            <div class="form-group">
+              <label>الباركود</label>
+              <div class="input-with-icon">
+                <input type="text" id="productBarcode">
+                <button type="button" class="icon-btn" onclick="generateBarcode()" title="توليد باركود تلقائي">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>التصنيف <span class="required">*</span></label>
+              <select id="productCategory" required>
+                <option value="">اختر التصنيف...</option>
+                <option value="مشروبات">مشروبات</option>
+                <option value="وجبات">وجبات</option>
+                <option value="حلويات">حلويات</option>
+                <option value="اخرى">أخرى</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>حد الطلب (Min Stock)</label>
+              <input type="number" id="productMinStock" value="10">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>سعر التكلفة</label>
+              <input type="number" id="productCost" step="0.01" min="0" required>
+            </div>
+            <div class="form-group">
+              <label>سعر البيع <span class="required">*</span></label>
+              <input type="number" id="productPrice" step="0.01" min="0" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>الكمية الأولية</label>
+              <input type="number" id="productStock" value="0" min="0">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>وصف المنتج</label>
+            <textarea id="productDescription" rows="3"></textarea>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeModal()">إلغاء</button>
+            <button type="submit" class="btn btn-primary" id="saveBtn">
+              <span id="btnText">حفظ</span>
+              <i class="fa-solid fa-spinner fa-spin hidden" id="btnSpinner"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/api.js" type="module"></script>
+  <script type="module">
+    let currentPage = 1;
+    let currentLimit = 10;
+    
+    // Check Auth
+    // const user = checkAuth();
+    // if (user) {
+    //   document.querySelector('.name').textContent = user.name;
+    // }
+
+    // Load Products on Start
+    document.addEventListener('DOMContentLoaded', () => {
+      loadProducts();
+    });
+
+    // --- Functions ---
+
+    window.loadProducts = async (page = 1) => {
+      currentPage = page;
+      const tableBody = document.getElementById('productsTableBody');
+      tableBody.innerHTML = `<tr><td colspan="7" class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> جاري التحميل...</td></tr>`;
+
+      try {
+        const search = document.getElementById('searchInput').value;
+        const response = await api.getProducts({ 
+          page: currentPage, 
+          limit: currentLimit,
+          search: search 
+        });
+
+        if (response.success) {
+          renderTable(response.data);
+          // renderPagination(response.pagination); // Pagination logic can be added here
+        } else {
+          tableBody.innerHTML = `<tr><td colspan="7" class="error-text">فشل تحميل البيانات</td></tr>`;
+        }
+      } catch (error) {
+        console.error(error);
+        tableBody.innerHTML = `<tr><td colspan="7" class="error-text">حدث خطأ في الاتصال: ${error.message}</td></tr>`;
+      }
+    };
+
+    function renderTable(products) {
+      const tableBody = document.getElementById('productsTableBody');
+      
+      if (products.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="7" class="empty-state">لا توجد منتجات. ابدأ بإضافة منتج جديد!</td></tr>`;
+        return;
+      }
+
+      tableBody.innerHTML = products.map(product => `
+        <tr>
+          <td>
+            <div class="product-info-cell">
+              <div class="product-icon"><i class="fa-solid fa-box"></i></div>
+              <div>
+                <div class="product-name">${product.name}</div>
+                <div class="product-desc-sm">${product.description ? product.description.substring(0, 30) + '...' : ''}</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="badge badge-gray">${product.barcode || '-'}</span></td>
+          <td><span class="badge badge-blue">${product.category}</span></td>
+          <td class="price-cell">${formatCurrency(product.price)}</td>
+          <td class="price-cell text-muted">${formatCurrency(product.cost)}</td>
+          <td>
+            <span class="stock-badge ${getStockClass(product.stock, product.minStock)}">
+              ${product.stock}
+            </span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button class="icon-btn edit-btn" onclick="editProduct('${product._id}')" title="تعديل">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button class="icon-btn delete-btn" onclick="deleteProduct('${product._id}')" title="حذف">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function getStockClass(stock, min) {
+      if (stock <= 0) return 'stock-out';
+      if (stock <= min) return 'stock-low';
+      return 'stock-ok';
+    }
+
+    // --- Search ---
+    let searchTimeout;
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        loadProducts(1);
+      }, 500);
+    });
+
+    // --- Modal Logic ---
+    const modal = document.getElementById('productModal');
+    const form = document.getElementById('productForm');
+
+    window.openModal = (mode, product = null) => {
+      modal.style.display = 'block';
+      if (mode === 'add') {
+        document.getElementById('modalTitle').textContent = 'إضافة منتج جديد';
+        document.getElementById('productId').value = '';
+        form.reset();
+      } else if (mode === 'edit' && product) {
+        document.getElementById('modalTitle').textContent = 'تعديل منتج';
+        document.getElementById('productId').value = product._id;
+        document.getElementById('productName').value = product.name;
+        document.getElementById('productBarcode').value = product.barcode;
+        document.getElementById('productCategory').value = product.category;
+        document.getElementById('productPrice').value = product.price;
+        document.getElementById('productCost').value = product.cost;
+        document.getElementById('productStock').value = product.stock;
+        document.getElementById('productMinStock').value = product.minStock;
+        document.getElementById('productDescription').value = product.description;
+      }
+    };
+
+    window.closeModal = () => {
+      modal.style.display = 'none';
+    };
+
+    window.generateBarcode = () => {
+      const random = Math.floor(Math.random() * 90000000) + 10000000;
+      document.getElementById('productBarcode').value = random;
+    };
+
+    // Close modal when clicking outside
+    window.onclick = (event) => {
+      if (event.target == modal) {
+        closeModal();
+      }
+    };
+
+    // --- CRUD Operations ---
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const id = document.getElementById('productId').value;
+      const btn = document.getElementById('saveBtn');
+      const spinner = document.getElementById('btnSpinner');
+      const btnText = document.getElementById('btnText');
+      
+      // Loading State
+      btn.disabled = true;
+      spinner.classList.remove('hidden');
+      btnText.textContent = 'جاري الحفظ...';
+
+      const data = {
+        name: document.getElementById('productName').value,
+        barcode: document.getElementById('productBarcode').value,
+        category: document.getElementById('productCategory').value,
+        price: document.getElementById('productPrice').value,
+        cost: document.getElementById('productCost').value,
+        stock: document.getElementById('productStock').value,
+        minStock: document.getElementById('productMinStock').value,
+        description: document.getElementById('productDescription').value
+      };
+
+      try {
+        let result;
+        if (id) {
+          result = await api.updateProduct(id, data);
+        } else {
+          result = await api.createProduct(data);
+        }
+
+        if (result.success) {
+          showAlert(id ? 'تم تعديل المنتج بنجاح' : 'تم إضافة المنتج بنجاح');
+          closeModal();
+          loadProducts(currentPage);
+        }
+      } catch (error) {
+        showAlert('حدث خطأ أثناء الحفظ', 'error');
+        console.error(error);
+      } finally {
+        btn.disabled = false;
+        spinner.classList.add('hidden');
+        btnText.textContent = 'حفظ';
+      }
+    });
+
+    window.editProduct = async (id) => {
+      try {
+        const response = await api.getProduct(id);
+        if (response.success) {
+          openModal('edit', response.data);
+        }
+      } catch (error) {
+        showAlert('فشل جلب بيانات المنتج', 'error');
+      }
+    };
+
+    window.deleteProduct = async (id) => {
+      if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
+        try {
+          const result = await api.deleteProduct(id);
+          if (result.success) {
+            showAlert('تم حذف المنتج');
+            loadProducts(currentPage);
+          }
+        } catch (error) {
+          showAlert('فشل الحذف', 'error');
+        }
+      }
+    };
+
+  </script>
+</body>
+</html>
