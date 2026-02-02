@@ -1,10 +1,155 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0; url=pages/dashboard.html">
-  <script>window.location.href = 'pages/dashboard.html';</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMS POS System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #1f2937;
+            background: radial-gradient(circle at center, #2d3748 0%, #1a202c 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Cairo', sans-serif;
+            overflow: hidden;
+        }
+
+        .loader-container {
+            text-align: center;
+            position: relative;
+        }
+
+        .logo-box {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 2rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .logo-icon {
+            font-size: 5rem;
+            color: #6366f1;
+            filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.5));
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        .title {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 0.8s ease-out forwards 0.5s;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 0.8s ease-out forwards 0.8s;
+        }
+
+        .progress-bar {
+            width: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #6366f1, #ec4899);
+            border-radius: 4px;
+            margin: 2rem auto 0;
+            max-width: 300px;
+            animation: load 2.5s ease-in-out forwards 1s;
+        }
+
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: rise 10s infinite linear;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px rgba(99, 102, 241, 0.2); }
+            to { text-shadow: 0 0 30px rgba(99, 102, 241, 0.6), 0 0 10px #ec4899; }
+        }
+
+        @keyframes slideUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes load {
+            to { width: 100%; }
+        }
+
+        @keyframes rise {
+            from { transform: translateY(100vh) scale(0); opacity: 0; }
+            50% { opacity: 1; }
+            to { transform: translateY(-100px) scale(1); opacity: 0; }
+        }
+    </style>
 </head>
 <body>
+    <div class="particles" id="particles"></div>
+
+    <div class="loader-container">
+        <div class="logo-box">
+            <i class="fa-solid fa-cash-register logo-icon"></i>
+        </div>
+        <h1 class="title">نظام الكاشير المتطور</h1>
+        <p class="subtitle">جاري تجهيز بيئة العمل...</p>
+        <div class="progress-bar"></div>
+    </div>
+
+    <script>
+        // Create Particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            const size = Math.random() * 5 + 2;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.left = `${Math.random() * 100}%`;
+            particle.style.animationDuration = `${Math.random() * 5 + 5}s`;
+            particle.style.animationDelay = `${Math.random() * 5}s`;
+            particlesContainer.appendChild(particle);
+        }
+
+        // Redirect logic
+        setTimeout(() => {
+            const subtitle = document.querySelector('.subtitle');
+            subtitle.textContent = "مرحباً بك 👋";
+            subtitle.style.color = "#10b981";
+            
+            setTimeout(() => {
+                window.location.href = 'pages/dashboard.html';
+            }, 800);
+        }, 3500);
+    </script>
 </body>
 </html>
