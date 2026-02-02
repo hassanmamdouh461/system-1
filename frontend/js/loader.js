@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
+    console.log("Loader Script Initialized");
     // Inject HTML
     const loaderHTML = `
     <div class="loader-overlay" id="loaderOverlay">
