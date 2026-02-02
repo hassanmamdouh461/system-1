@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMS - التقارير</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-cash-register"></i>
+                <span>CMS POS</span>
+            </div>
+            <nav class="nav-menu">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>لوحة التحكم</span>
+                </a>
+                <a href="pos.html" class="nav-item">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span>نقطة البيع</span>
+                </a>
+                <a href="products.html" class="nav-item">
+                    <i class="fa-solid fa-box-open"></i>
+                    <span>المنتجات</span>
+                </a>
+                <a href="customers.html" class="nav-item">
+                    <i class="fa-solid fa-users"></i>
+                    <span>العملاء</span>
+                </a>
+                <a href="invoices.html" class="nav-item active">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>الفواتير</span>
+                </a>
+                 <a href="reports.html" class="nav-item">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>التقارير</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="page-title">
+                    <h1>سجل الفواتير</h1>
+                    <p>عرض تفاصيل المبيعات السابقة</p>
+                </div>
+            </header>
+
+            <div class="table-container fade-in">
+                 <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>رقم الفاتورة</th>
+                            <th>العميل</th>
+                            <th>التاريخ</th>
+                            <th>المبلغ</th>
+                            <th>الحالة</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoicesTableBody">
+                        <tr><td colspan="6" class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> جاري التحميل...</td></tr>
+                    </tbody>
+                 </table>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/api.js" type="module"></script>
+    <script type="module">
+        document.addEventListener('DOMContentLoaded', async () => {
+             try {
+                const response = await api.getInvoices();
+                const tbody = document.getElementById('invoicesTableBody');
+                
+                if(response.success && response.data.length > 0) {
+                    tbody.innerHTML = response.data.map(inv => `
+                        <tr>
+                            <td>#${inv.invoiceNumber}</td>
+                            <td>${inv.customerName}</td>
+                            <td>${formatDate(inv.createdAt)}</td>
+                            <td>${formatCurrency(inv.total)}</td>
+                            <td><span class="badge badge-green">مكتملة</span></td>
+                            <td>
+                                <button class="icon-btn"><i class="fa-solid fa-eye"></i></button>
+                                <button class="icon-btn"><i class="fa-solid fa-print"></i></button>
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center p-3">لا توجد فواتير</td></tr>';
+                }
+             } catch(e) {
+                 console.error(e);
+             }
+        });
+    </script>
+</body>
+</html>
