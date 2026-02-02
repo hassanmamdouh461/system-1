@@ -150,10 +150,16 @@ const api = {
     // Customers
     getCustomers: async (params = {}) => {
         try {
+            const queries = [Query.limit(params.limit || 50)];
+            // Add search if needed
+            if (params.search) {
+                 queries.push(Query.search('name', params.search));
+            }
+            
             const result = await databases.listDocuments(
                 DATABASE_ID,
                 COLLECTIONS.CUSTOMERS,
-                [Query.limit(params.limit || 50)]
+                queries
             );
             
             return {
@@ -185,6 +191,37 @@ const api = {
             return { success: true, data: mapDocument(doc) };
         } catch (error) {
             console.error('Error creating customer:', error);
+            throw error;
+        }
+    },
+
+    updateCustomer: async (id, customerData) => {
+        try {
+            const doc = await databases.updateDocument(
+                DATABASE_ID,
+                COLLECTIONS.CUSTOMERS,
+                id,
+                {
+                    name: customerData.name,
+                    phone: customerData.phone,
+                    email: customerData.email || '',
+                    address: customerData.address || ''
+                }
+            );
+            
+            return { success: true, data: mapDocument(doc) };
+        } catch (error) {
+            console.error('Error updating customer:', error);
+            throw error;
+        }
+    },
+
+    deleteCustomer: async (id) => {
+        try {
+            await databases.deleteDocument(DATABASE_ID, COLLECTIONS.CUSTOMERS, id);
+            return { success: true, message: 'تم حذف العميل بنجاح' };
+        } catch (error) {
+            console.error('Error deleting customer:', error);
             throw error;
         }
     },
